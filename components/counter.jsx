@@ -145,8 +145,6 @@ function Counter({ sessionData, setSessionData, tasks, setTasks }) {
     }
   };
 
-  console.log(sessionData);
-
   return (
     <div className="min-h-80 border-2 border-dashed border-white flex items-center justify-center min-w-80 rounded-full flex-col m-auto">
       <div className="flex flex-col justify-center items-center">
