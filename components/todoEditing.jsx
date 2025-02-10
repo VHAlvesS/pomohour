@@ -1,5 +1,4 @@
 "use client";
-import openDB from "@/db/db";
 import React from "react";
 
 function Todo({ done = false, title, id, editTask, editedTask }) {

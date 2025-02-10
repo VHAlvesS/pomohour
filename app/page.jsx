@@ -1,5 +1,3 @@
-import Image from "next/image";
-import Link from "next/link";
 import Counter from "../components/counter";
 import Tasks from "../components/tasks";
 import Header from "../components/header";
