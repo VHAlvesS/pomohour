@@ -37,7 +37,7 @@ function Todo({ done = false, title, id, editTask, editedTask }) {
         className="relative appearance-none w-4 h-4 border-2 border-white rounded
         before:content-[''] before:block before:w-2 before:h-2 before:bg-center before:bg-no-repeat before:bg-contain
         before:absolute before:top-1/2 before:left-1/2 before:transform before:-translate-x-1/2 before:-translate-y-1/2
-        checked:before:bg-[url('public/check.svg')] ml-auto"
+        checked:before:bg-[url('/check.svg')] ml-auto"
       />
       <button
         className=" ml-2"
