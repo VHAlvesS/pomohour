@@ -8,8 +8,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        mainColor: "#1C1C1C",
+      },
+      boxShadow: {
+        "custom-buttonShadow": "0 0px 0px 1px rgba(227, 227, 227, 0.1)",
       },
     },
   },
