@@ -13,11 +13,15 @@ export default function Header() {
   };
 
   return (
-    <header className=" flex justify-between items-center w-full">
+    <header
+      className={`flex justify-between items-center w-full ${
+        isOverlayOpen && overlay === "MobileMenu" ? "flex-col text-2xl" : ""
+      }`}
+    >
       {isOverlayOpen && overlay !== "none" && (
         <div
           id="overlay"
-          className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-90 z-50 flex items-center justify-center"
+          className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-90 z-40 flex items-center justify-center"
           onClick={toggleOverlay}
         >
           <div
@@ -35,17 +39,27 @@ export default function Header() {
         </div>
       )}
 
-      <h1 className="text-4xl">
+      <h1 className="text-4xl z-50">
         <Link href="/">Pomohour</Link>
       </h1>
-      <nav className="flex gap-4">
+      <nav
+        className={`flex gap-4 z-50 ${
+          isOverlayOpen && overlay === "MobileMenu" ? "flex-col text-xl" : ""
+        }`}
+      >
         <svg
           width="24"
           height="24"
           viewBox="0 0 24 24"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="cursor-pointer sm:hidden"
+          className={`cursor-pointer sm:hidden ${
+            isOverlayOpen && overlay === "MobileMenu" ? "hidden" : ""
+          }`}
+          onClick={() => {
+            setOverlay("MobileMenu");
+            toggleOverlay();
+          }}
         >
           <path
             d="M3 7H21"
@@ -68,13 +82,21 @@ export default function Header() {
         </svg>
         <Link
           href="/about"
-          className="hidden  sm:block font-semibold bg-mainColor"
+          className={`sm:block font-semibold bg-mainColor ${
+            isOverlayOpen && overlay === "MobileMenu"
+              ? "bg-transparent text-center"
+              : "hidden"
+          }`}
         >
           About us
         </Link>
         <button
           type="button"
-          className="hidden sm:flex gap-1 items-center font-semibold"
+          className={`sm:flex gap-1 items-center font-semibold ${
+            isOverlayOpen && overlay === "MobileMenu"
+              ? "flex text-center justify-center -order-1 mt-4"
+              : "hidden"
+          }`}
         >
           <svg
             width="16"
@@ -82,6 +104,9 @@ export default function Header() {
             viewBox="0 0 16 16"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
+            className={`${
+              isOverlayOpen && overlay === "MobileMenu" ? "hidden" : ""
+            }`}
           >
             <path
               d="M8.10671 7.24659C8.04004 7.23992 7.96004 7.23992 7.88671 7.24659C6.30004 7.19325 5.04004 5.89325 5.04004 4.29325C5.04004 2.65992 6.36004 1.33325 8.00004 1.33325C9.63337 1.33325 10.96 2.65992 10.96 4.29325C10.9534 5.89325 9.69337 7.19325 8.10671 7.24659Z"
@@ -102,7 +127,9 @@ export default function Header() {
         </button>
         <button
           type="button"
-          className="hidden sm:flex gap-1 items-center font-semibold bg-white rounded-sm px-1"
+          className={`sm:flex gap-1 items-center font-semibold bg-white rounded-sm px-1 text-black ${
+            isOverlayOpen && overlay === "MobileMenu" ? "flex" : "hidden"
+          }`}
           onClick={() => {
             setOverlay("Settings");
             setIsOverlayOpen(true);
@@ -132,6 +159,7 @@ export default function Header() {
               strokeLinejoin="round"
             />
           </svg>
+          {isOverlayOpen && overlay === "MobileMenu" ? "Settings" : ""}
         </button>
       </nav>
     </header>
