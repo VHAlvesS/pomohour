@@ -1,12 +1,15 @@
 import React from "react";
 import Header from "../../components/header";
-import Accordion from "@/components/accordion";
+import Accordion from "../../components/accordion";
 import SettingsProvider from "../../components/settingsWrapper";
+import { auth } from "../../lib/auth";
 
-function about() {
+async function about() {
+  const session = await auth();
+
   return (
     <div className="grid items-center justify-items-center mt-3 pb-20 font-[family-name:var(--font-geist-sans)] w-11/12 m-auto">
-      <SettingsProvider>
+      <SettingsProvider session={session}>
         <Header />
       </SettingsProvider>
       <div className="mt-16 bg-white bg-opacity-5 rounded-lg p-4 pb-16">

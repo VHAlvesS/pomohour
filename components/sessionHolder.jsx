@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import openDB from "../db/db";
 
-export const TimerSession = ({ children }) => {
+export const TimerSession = ({ children, session }) => {
   const [sessionData, setSessionData] = useState({});
   const [tasks, setTasks] = useState([]);
 
@@ -30,8 +30,18 @@ export const TimerSession = ({ children }) => {
       }
     };
 
-    runDB();
-  }, []);
+    const getSessionData = async () => {
+      const response = await fetch("api/pomodoroSession");
+
+      if (!response.ok)
+        throw new Error("Error while retriving pomodoro session");
+
+      const data = await response.json();
+      setSessionData(data);
+    };
+
+    session === null ? runDB() : getSessionData();
+  }, [session]);
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -48,12 +58,23 @@ export const TimerSession = ({ children }) => {
           setTasks(sortedTasks);
         };
       } catch (error) {
-        console.error("Erro ao carregar tarefas do IndexedDB:", error);
+        console.error("Error while loading tasks from IndexDB:", error);
       }
     };
 
-    loadTasks();
-  }, []);
+    const getTasks = async () => {
+      const response = await fetch("api/tasks");
+
+      if (!response.ok) throw new Error("Error while retriving tasks");
+
+      const data = await response.json();
+
+      const sortedTasks = data.sort((a, b) => a.order - b.order);
+      setTasks([...sortedTasks]);
+    };
+
+    session === null ? loadTasks() : getTasks();
+  }, [session]);
 
   return (
     <>
@@ -63,6 +84,7 @@ export const TimerSession = ({ children }) => {
           setSessionData,
           tasks,
           setTasks,
+          session,
         })
       )}
     </>

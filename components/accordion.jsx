@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 
 function Accordion({
-  title = "Titulo exemplo",
+  title = "Title",
   description = "Lorem ipsum Lorem ipsum Lorem ipsum Lorem ipsum",
   className,
 }) {

@@ -5,10 +5,22 @@ import openDB from "../db/db";
 import { v4 as randomID } from "uuid";
 import { toast } from "react-toastify";
 
-function CreateTaskInput({ onAddTask, setTasks, tasks }) {
+function CreateTaskInput({ onAddTask, setTasks, tasks, session }) {
   const [title, setTitle] = useState("");
   const [acts, setActs] = useState("");
   const [manageModal, setManageModal] = useState(false);
+
+  const taskCreated = () =>
+    toast.success("Task created!", {
+      position: "bottom-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+    });
 
   const createTask = async function (title, acts) {
     if (!title || !acts || acts <= 0) {
@@ -18,9 +30,6 @@ function CreateTaskInput({ onAddTask, setTasks, tasks }) {
       return;
     }
     try {
-      const db = await openDB();
-      const transaction = db.transaction("offlineTasks", "readwrite");
-      const store = transaction.objectStore("offlineTasks");
       const id = randomID();
       const newTask = {
         title,
@@ -31,34 +40,54 @@ function CreateTaskInput({ onAddTask, setTasks, tasks }) {
         order: tasks.length,
       };
 
-      const request = store.add(newTask);
+      if (session === null) {
+        const db = await openDB();
+        const transaction = db.transaction("offlineTasks", "readwrite");
+        const store = transaction.objectStore("offlineTasks");
 
-      request.onsuccess = function () {
-        console.log("Task created successful!");
+        const request = store.add(newTask);
+
+        request.onsuccess = function () {
+          console.log("Task created successful!");
+          setTitle("");
+          setActs("");
+          onAddTask(newTask);
+          taskCreated();
+        };
+
+        request.onerror = function () {
+          console.error("Error while creating task.");
+        };
+      }
+
+      if (session !== null) {
+        const response = await fetch("api/tasks", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            totalPomodoros: acts,
+            order: tasks.length,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Error while creating task");
+        }
+
+        const newTaskFromBackend = await response.json();
+
         setTitle("");
         setActs("");
-        onAddTask(newTask);
-      };
-
-      request.onerror = function () {
-        console.error("Error while creating task.");
-      };
+        onAddTask(newTaskFromBackend);
+        taskCreated();
+      }
     } catch (error) {
       console.log("error while creating task:", error);
     }
   };
-
-  const authNotify = () =>
-    toast.error("Denied, you're not logged in", {
-      position: "bottom-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: false,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "light",
-    });
 
   return (
     <div className="flex flex-wrap gap-2 w-full">
@@ -191,7 +220,7 @@ function CreateTaskInput({ onAddTask, setTasks, tasks }) {
               type="button"
               className="flex justify-center items-center gap-1"
               onClick={() => {
-                const clearData = async function () {
+                const deleteData = async function () {
                   const db = await openDB();
                   const transaction = db.transaction(
                     "offlineTasks",
@@ -218,7 +247,22 @@ function CreateTaskInput({ onAddTask, setTasks, tasks }) {
                     );
                   };
                 };
-                clearData();
+
+                const deleteAsyncData = async function () {
+                  const response = await fetch("api/tasks", {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ deleteAll: true }),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error("Error while deleting task");
+                  }
+
+                  setTasks([]);
+                };
+
+                session === null ? deleteData() : deleteAsyncData();
               }}
             >
               <svg
@@ -299,7 +343,31 @@ function CreateTaskInput({ onAddTask, setTasks, tasks }) {
 
                   setTasks(sortedNewTasks);
                 };
-                clearData();
+
+                const clearAsyncData = async function () {
+                  try {
+                    const response = await fetch("api/tasks", {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ clearTasks: true }),
+                    });
+
+                    if (!response.ok) {
+                      throw new Error("Error while updating tasks");
+                    }
+
+                    setTasks((tasks) =>
+                      tasks.map((task) => ({
+                        ...task,
+                        finishedPomodoros: 0,
+                      }))
+                    );
+                  } catch (error) {
+                    console.error("Failed to update tasks:", error);
+                  }
+                };
+
+                session === null ? clearData() : clearAsyncData();
               }}
             >
               <svg
@@ -325,38 +393,6 @@ function CreateTaskInput({ onAddTask, setTasks, tasks }) {
                 />
               </svg>
               Clear finished tasks
-            </button>
-            <button
-              type="button"
-              className="flex justify-center items-center gap-1"
-              onClick={() => {
-                setManageModal(false);
-                authNotify();
-              }}
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 16 16"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M10.6666 8.59992V11.3999C10.6666 13.7333 9.73331 14.6666 7.39998 14.6666H4.59998C2.26665 14.6666 1.33331 13.7333 1.33331 11.3999V8.59992C1.33331 6.26658 2.26665 5.33325 4.59998 5.33325H7.39998C9.73331 5.33325 10.6666 6.26658 10.6666 8.59992Z"
-                  stroke="#1C1C1C"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M14.6666 4.59992V7.39992C14.6666 9.73325 13.7333 10.6666 11.4 10.6666H10.6666V8.59992C10.6666 6.26658 9.73331 5.33325 7.39998 5.33325H5.33331V4.59992C5.33331 2.26659 6.26665 1.33325 8.59998 1.33325H11.4C13.7333 1.33325 14.6666 2.26659 14.6666 4.59992Z"
-                  stroke="#1C1C1C"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Import from templates
             </button>
           </div>
 

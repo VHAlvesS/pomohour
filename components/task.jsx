@@ -1,5 +1,5 @@
 "use client";
-import openDB from "@/db/db";
+import openDB from "../db/db";
 import React, { useState, useEffect } from "react";
 import { v4 as randomID } from "uuid";
 import TodoEdit from "./todoEditing";
@@ -14,6 +14,8 @@ function Task({
   updateTasks,
   selectTask,
   sessionData,
+  session,
+  order,
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTask, setEditedTask] = useState(() => ({
@@ -25,13 +27,10 @@ function Task({
   }));
 
   useEffect(() => {
-    setEditedTask({
-      id,
-      title,
-      totalPomodoros,
-      finishedPomodoros,
-      todos,
-    });
+    const newTask = { id, title, totalPomodoros, finishedPomodoros, todos };
+    if (JSON.stringify(editedTask) !== JSON.stringify(newTask)) {
+      setEditedTask(newTask);
+    }
   }, [title, totalPomodoros, finishedPomodoros, todos]);
 
   const originalTask = {
@@ -44,15 +43,52 @@ function Task({
 
   const updateTask = async function () {
     try {
-      const db = await openDB();
-      const transaction = db.transaction("offlineTasks", "readwrite");
-      const store = transaction.objectStore("offlineTasks");
+      if (session === null) {
+        const db = await openDB();
+        const transaction = db.transaction("offlineTasks", "readwrite");
+        const store = transaction.objectStore("offlineTasks");
 
-      const request = store.get(id);
-      store.put(editedTask);
-      setIsEditing(!isEditing);
-      transaction.oncomplete = function () {
-        console.log("Todo Transaction completed successfully.");
+        const request = store.get(id);
+        store.put(editedTask);
+        setIsEditing(!isEditing);
+        transaction.oncomplete = function () {
+          console.log("Todo Transaction completed successfully.");
+          updateTasks((tasks) =>
+            tasks.map((task) => {
+              if (task.id === id) {
+                return {
+                  ...task,
+                  ...editedTask,
+                  todos: editedTask.todos,
+                };
+              }
+              return task;
+            })
+          );
+          db.close();
+        };
+      } else {
+        const response = await fetch("api/tasks", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id,
+            title: editedTask.title,
+            totalPomodoros: editedTask.totalPomodoros,
+            finishedPomodoros: editedTask.finishedPomodoros,
+            todos: editedTask.todos,
+            order,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Error while trying to update a task");
+        }
+
+        setIsEditing(!isEditing);
+
         updateTasks((tasks) =>
           tasks.map((task) => {
             if (task.id === id) {
@@ -65,8 +101,7 @@ function Task({
             return task;
           })
         );
-        db.close();
-      };
+      }
     } catch (error) {
       console.log(error);
     }
@@ -100,19 +135,37 @@ function Task({
   };
 
   const deleteTask = async function () {
-    const db = await openDB();
-    const transaction = db.transaction("offlineTasks", "readwrite");
-    const store = transaction.objectStore("offlineTasks");
+    try {
+      if (session === null) {
+        const db = await openDB();
+        const transaction = db.transaction("offlineTasks", "readwrite");
+        const store = transaction.objectStore("offlineTasks");
 
-    const deleteId = store.delete(id);
+        const deleteId = store.delete(id);
 
-    deleteId.onsuccess = function () {
-      updateTasks((tasks) => tasks.filter((task) => task.id !== id));
-    };
+        deleteId.onsuccess = function () {
+          updateTasks((tasks) => tasks.filter((task) => task.id !== id));
+        };
 
-    transaction.oncomplete = function () {
-      db.close();
-    };
+        transaction.oncomplete = function () {
+          db.close();
+        };
+      } else {
+        const response = await fetch("api/tasks", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Error while deleting task");
+        }
+
+        updateTasks((tasks) => tasks.filter((task) => task.id !== id));
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (!isEditing) {
@@ -180,6 +233,8 @@ function Task({
                 updateTasks={updateTasks}
                 taskId={id}
                 editTask={setEditedTask}
+                todos={todos}
+                session={session}
               />
             ))}
           </div>

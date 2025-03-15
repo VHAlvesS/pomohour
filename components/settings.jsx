@@ -1,9 +1,9 @@
 "use client";
 import React, { useContext, useState } from "react";
 import { SettingsContext } from "../components/settingsWrapper";
-import openDB from "@/db/db";
+import openDB from "../db/db";
 
-function Settings({ setIsOverlayOpen, setOverlay }) {
+function Settings({ setIsOverlayOpen, setOverlay, session }) {
   const { settings, setSettings } = useContext(SettingsContext);
 
   const [pomodoros, setPomodoros] = useState(settings.timer);
@@ -20,29 +20,66 @@ function Settings({ setIsOverlayOpen, setOverlay }) {
 
   const saveChanges = async function () {
     try {
-      const db = await openDB();
-      const transaction = db.transaction("offlineSettings", "readwrite");
-      const store = transaction.objectStore("offlineSettings");
+      if (session === null) {
+        const db = await openDB();
+        const transaction = db.transaction("offlineSettings", "readwrite");
+        const store = transaction.objectStore("offlineSettings");
 
-      const updatedSettings = [
-        { setting: "timer", value: pomodoros },
-        { setting: "shortBreak", value: shortBreak },
-        { setting: "longBreak", value: longBreak },
-        { setting: "longInterval", value: longIntervals },
-        { setting: "alarmVolume", value: alarmVolume },
-        { setting: "alarmRepeat", value: alarmRepeat },
-        { setting: "alarmSound", value: selectedOption },
-      ];
+        const updatedSettings = [
+          { setting: "timer", value: pomodoros },
+          { setting: "shortBreak", value: shortBreak },
+          { setting: "longBreak", value: longBreak },
+          { setting: "longInterval", value: longIntervals },
+          { setting: "alarmVolume", value: alarmVolume },
+          { setting: "alarmRepeat", value: alarmRepeat },
+          { setting: "alarmSound", value: selectedOption },
+        ];
 
-      for (const setting of updatedSettings) {
-        await store.put(setting);
+        for (const setting of updatedSettings) {
+          await store.put(setting);
+        }
+
+        const treatedSettings = updatedSettings.reduce((acc, curr) => {
+          acc[curr.setting] = curr.value;
+          return acc;
+        }, {});
+
+        setSettings(treatedSettings);
+        setIsOverlayOpen(false);
+        setOverlay("none");
       }
 
-      const treatedSettings = updatedSettings.reduce((acc, curr) => {
-        acc[curr.setting] = curr.value;
-        return acc;
-      }, {});
-      setSettings(treatedSettings);
+      if (session !== null) {
+        const response = await fetch("api/settings", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            timer: pomodoros,
+            shortBreak: shortBreak,
+            longBreak: longBreak,
+            longIntervals: longIntervals,
+            alarmRepeat: alarmRepeat,
+            alarmVolume: Number(alarmVolume),
+            alarmSound: selectedOption,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Error while trying to update settings");
+        }
+      }
+
+      setSettings({
+        alarmRepeat,
+        alarmVolume,
+        longBreak,
+        shortBreak,
+        timer: pomodoros,
+        alarmSound: selectedOption,
+        longInterval: longIntervals,
+      });
       setIsOverlayOpen(false);
       setOverlay("none");
     } catch (error) {

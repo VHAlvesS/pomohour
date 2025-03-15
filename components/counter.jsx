@@ -1,8 +1,8 @@
 "use client";
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, session } from "react";
 import { SettingsContext } from "../components/settingsWrapper";
 import openDB from "../db/db";
-import PlayAlarm from "@/utils/alarmAudios";
+import PlayAlarm from "../utils/alarmAudios";
 
 function Counter({ sessionData, setSessionData, tasks, setTasks }) {
   const { settings } = useContext(SettingsContext);
@@ -60,7 +60,6 @@ function Counter({ sessionData, setSessionData, tasks, setTasks }) {
       if (!sessionData) return;
 
       if (sessionData && !sessionData.isActive) {
-        console.log(sessionData);
         setSessionData((sessionData) => ({
           ...sessionData,
           isActive: isTimerOn,
@@ -77,37 +76,72 @@ function Counter({ sessionData, setSessionData, tasks, setTasks }) {
 
   const finishPomodoro = async function () {
     try {
-      const db = await openDB();
-      const transaction = db.transaction("offlineTasks", "readwrite");
-      const store = transaction.objectStore("offlineTasks");
+      if (session === null) {
+        const db = await openDB();
+        const transaction = db.transaction("offlineTasks", "readwrite");
+        const store = transaction.objectStore("offlineTasks");
 
-      const selectedPomodoro = sessionData.currentTask;
-      const pomodoroToUpdate = tasks.find(
-        (element) => element.id === selectedPomodoro
-      );
-      const newPomodoroEntry = {
-        ...pomodoroToUpdate,
-        finishedPomodoros: (pomodoroToUpdate.finishedPomodoros || 0) + 1,
-      };
+        const selectedPomodoro = sessionData.currentTask;
+        const pomodoroToUpdate = tasks.find(
+          (element) => element.id === selectedPomodoro
+        );
+        const newPomodoroEntry = {
+          ...pomodoroToUpdate,
+          finishedPomodoros: (pomodoroToUpdate.finishedPomodoros || 0) + 1,
+        };
 
-      const updatePomodoro = store.put(newPomodoroEntry);
+        const updatePomodoro = store.put(newPomodoroEntry);
 
-      updatePomodoro.onsuccess = function () {
+        updatePomodoro.onsuccess = function () {
+          setTasks((tasks) =>
+            tasks.map((task) => {
+              if (task.id === selectedPomodoro) {
+                return newPomodoroEntry;
+              }
+              return task;
+            })
+          );
+        };
+
+        setTimerOn(false);
+
+        transaction.oncomplete = function () {
+          db.close();
+        };
+      }
+      if (session !== null) {
+        if (sessionData.currentTask === "none") {
+          console.log("Select a task");
+          return;
+        }
+
+        const selectedPomodoro = tasks.find(
+          (element) => element.id === sessionData.currentTask
+        );
+
+        const response = await fetch("api/tasks", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            finishTask: true,
+            id: sessionData.currentTask,
+            finishedPomodoros: selectedPomodoro.finishedPomodoros + 1,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Error while deleting task");
+        }
+
         setTasks((tasks) =>
           tasks.map((task) => {
-            if (task.id === selectedPomodoro) {
-              return newPomodoroEntry;
+            if (task.id === selectedPomodoro.id) {
+              return { ...task, finishedPomodoros: task.finishedPomodoros + 1 };
             }
             return task;
           })
         );
-      };
-
-      setTimerOn(false);
-
-      transaction.oncomplete = function () {
-        db.close();
-      };
+      }
     } catch (error) {
       console.log("error");
     }

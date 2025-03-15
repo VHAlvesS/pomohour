@@ -1,8 +1,16 @@
 "use client";
 import React from "react";
-import openDB from "@/db/db";
+import openDB from "../db/db";
 
-function Todo({ done = false, title, id, updateTasks, taskId }) {
+function Todo({
+  done = false,
+  title,
+  id,
+  updateTasks,
+  taskId,
+  session,
+  todos,
+}) {
   return (
     <div className="flex items-center my-1 overflow-hidden">
       <input
@@ -51,7 +59,49 @@ function Todo({ done = false, title, id, updateTasks, taskId }) {
             }
           };
 
-          updateTodo();
+          const updateAsyncTodo = async function () {
+            try {
+              const newTodos = todos.map((todo) =>
+                todo.todoId !== id
+                  ? todo
+                  : { ...todo, completed: !todo.completed }
+              );
+
+              const response = await fetch("api/tasks", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  id: taskId,
+                  todos: newTodos,
+                  finishTodo: true,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error("Error while updating task todo");
+              }
+
+              updateTasks((tasks) =>
+                tasks.map((task) => {
+                  if (task.id === taskId) {
+                    return {
+                      ...task,
+                      todos: task.todos.map((todo) =>
+                        todo.todoId !== id
+                          ? todo
+                          : { ...todo, completed: !todo.completed }
+                      ),
+                    };
+                  }
+                  return task;
+                })
+              );
+            } catch (error) {
+              console.log(error);
+            }
+          };
+
+          session === null ? updateTodo() : updateAsyncTodo();
         }}
         className="mr-1 relative appearance-none w-4 h-4 border-2 border-white rounded
         before:content-[''] before:block before:w-2 before:h-2 before:bg-center before:bg-no-repeat before:bg-contain
