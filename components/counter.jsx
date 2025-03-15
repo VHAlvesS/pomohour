@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState, useContext, session } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { SettingsContext } from "../components/settingsWrapper";
 import openDB from "../db/db";
 import PlayAlarm from "../utils/alarmAudios";
 
-function Counter({ sessionData, setSessionData, tasks, setTasks }) {
+function Counter({ sessionData, setSessionData, tasks, setTasks, session }) {
   const { settings } = useContext(SettingsContext);
   const [isTimerOn, setTimerOn] = useState(false);
   const [seconds, setSecond] = useState(0);
