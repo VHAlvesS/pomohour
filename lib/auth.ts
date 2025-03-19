@@ -9,15 +9,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: "jwt",
   },
-  callbacks: {
-    async signIn({ user }) {
-      if (!user?.email) return false;
-
-      const existingSettings = await prisma.settings.findUnique({
-        where: { userId: user.id },
-      });
-
-      if (!existingSettings) {
+  events: {
+    async createUser({ user }) {
+      try {
         await prisma.settings.create({
           data: {
             userId: user.id,
@@ -30,9 +24,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             alarmVolume: 50,
           },
         });
+      } catch (error) {
+        console.error("Error while creating settings:", error);
       }
-
-      return true;
     },
   },
 });

@@ -17,18 +17,14 @@ export async function GET(req) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  let pomodoroSession = await prisma.pomodoroSession.findUnique({
+  const pomodoroSession = await prisma.pomodoroSession.upsert({
     where: { userId: user.id },
+    update: {},
+    create: {
+      userId: user.id,
+      currentTask: "none",
+    },
   });
-
-  if (!pomodoroSession) {
-    pomodoroSession = await prisma.pomodoroSession.create({
-      data: {
-        userId: user.id,
-        currentTask: "none",
-      },
-    });
-  }
 
   return NextResponse.json(pomodoroSession);
 }

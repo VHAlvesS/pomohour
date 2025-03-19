@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
@@ -14,7 +11,7 @@ generator client {
 }
 
 model User {
-  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  id              String           @id @default(uuid()) @map("_id")
   name            String?
   email           String?          @unique
   emailVerified   DateTime?
@@ -25,74 +22,65 @@ model User {
   pomodoroSession pomodoroSession?
   // Optional for WebAuthn support
   Authenticator   Authenticator[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Task      Task[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  Task            Task[]
 }
 
 model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String  @db.ObjectId
+  id                String   @id @default(uuid()) @map("_id")
+  userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.String
-  access_token      String? @db.String
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.String
+  id_token          String?
   session_state     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([provider, providerAccountId])
 }
 
 model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String   @id @default(uuid()) @map("_id")
   sessionToken String   @unique
-  userId       String   @db.ObjectId
+  userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model VerificationToken {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  id         String   @id @default(uuid()) @map("_id")
   identifier String
   token      String
   expires    DateTime
-
   @@unique([identifier, token])
 }
 
 // Optional for WebAuthn support
 model Authenticator {
   credentialID         String  @id @map("_id")
-  userId               String  @db.ObjectId
+  userId               String
   providerAccountId    String
   credentialPublicKey  String
   counter              Int
   credentialDeviceType String
   credentialBackedUp   Boolean
   transports           String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, credentialID])
 }
 
-// User models
 model Settings {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String @unique @db.ObjectId
+  id           String   @id @default(uuid()) @map("_id")
+  userId       String   @unique
   alarmRepeat  Int
   alarmSound   String
   longBreak    Int
@@ -100,26 +88,23 @@ model Settings {
   shortBreak   Int
   timer        Int
   alarmVolume  Int
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model pomodoroSession {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  userId      String @unique @db.ObjectId
+  id          String   @id @default(uuid()) @map("_id")
+  userId      String   @unique
   currentTask String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Task {
-  id                String @id @default(auto()) @map("_id") @db.ObjectId
-  userId            String @db.ObjectId
+  id                String   @id @default(uuid()) @map("_id")
+  userId            String
   title             String
   todos             Json
   finishedPomodoros Int
   totalPomodoros    Int
   order             Int
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

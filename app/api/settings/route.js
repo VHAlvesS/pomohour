@@ -26,7 +26,6 @@ export async function GET(req) {
 
 export async function PATCH(req) {
   const authData = await auth();
-  console.log("abriu pelo menos");
 
   if (!authData) {
     return NextResponse.json({ error: "Auth needed" }, { status: 401 });
