@@ -42,5 +42,5 @@
   NEXTAUTH_SECRET=<uma_string_secreta_para_cookies>
   NEXTAUTH_URL=http://localhost:3000
 4. **Execute em modo de desenvolvimento**
-  npm run dev ou yarn dev ou pnpm dev
+  npm run dev ou yarn dev
 
