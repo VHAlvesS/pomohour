@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Pomohour 🕒
 
-## Getting Started
+**Pomohour** é um timer Pomodoro full‑stack, com autenticação de usuário e gerenciamento de tarefas, desenvolvido em Next.js e estilizado com Tailwind CSS.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Funcionalidades principais
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Autenticação de Usuário**  
+  Tela de login/registro para cada usuário ter seu próprio histórico de tarefas e sessões.
+- **Timer Pomodoro**  
+  Sessões de 25 minutos por padrão, com botão de “Start” para iniciar a contagem regressiva.
+- **Gerenciamento de Tarefas**  
+  - Criar novas tarefas  
+  - Listar tarefas pendentes  
+  - Deletar todas as tarefas  
+  - Limpar apenas as tarefas concluídas
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🧱 Tecnologias
 
-## Learn More
+- **Next.js** – React + SSR / API Routes  
+- **NextAuth.js** – Autenticação de usuário  
+- **Prisma** – ORM para modelagem e acesso ao banco de dados  
+- **MongoDB** – Persistência de dados  
+- **Tailwind CSS** – Estilização rápida e responsiva  
+- **Vercel** – Deploy automático
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔧 Instalação e uso
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Clone o repositório**  
+  git clone https://github.com/VHAlvesS/pomohour.git
+  cd pomohour
+2. **Instale as dependencias** 
+  npm install
+  # ou
+  yarn
+  # ou
+  pnpm install
+3. **Configure variáveis de ambiente** 
+  Crie um arquivo .env.local na raiz com pelo menos:
+  DATABASE_URL=<sua_string_de_conexão_MongoDB_ou_postgres>
+  NEXTAUTH_SECRET=<uma_string_secreta_para_cookies>
+  NEXTAUTH_URL=http://localhost:3000
+4. **Execute em modo de desenvolvimento**
+  npm run dev
+  # ou
+  yarn dev
+  # ou
+  pnpm dev
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
