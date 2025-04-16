@@ -36,9 +36,9 @@
   cd pomohour
 2. **Instale as dependencias** 
   npm install
-  # ou
+  ou
   yarn
-  # ou
+  ou
   pnpm install
 3. **Configure variáveis de ambiente** 
   Crie um arquivo .env.local na raiz com pelo menos:
