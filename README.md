@@ -34,13 +34,15 @@
 1. **Clone o repositório**  
   git clone https://github.com/VHAlvesS/pomohour.git
   cd pomohour
-2. **Instale as dependencias** 
+2. **Instale as dependencias**:
+
   npm install ou pnpm install
-3. **Configure variáveis de ambiente** 
+3. **Configure variáveis de ambiente:** 
   Crie um arquivo .env.local na raiz com pelo menos:
   DATABASE_URL=<sua_string_de_conexão_MongoDB_ou_postgres>
   NEXTAUTH_SECRET=<uma_string_secreta_para_cookies>
   NEXTAUTH_URL=http://localhost:3000
-4. **Execute em modo de desenvolvimento**
+4. **Execute em modo de desenvolvimento:**
+
   npm run dev ou yarn dev
 
